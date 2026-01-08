@@ -1,7 +1,7 @@
 use left_right::aliasing::Aliased;
 
 use crate::{
-    get_mut::Mutable,
+    mutable::Mutable,
     inner::{Inner, Operation, Value},
     single::read::ReadHandle,
 };
@@ -55,6 +55,10 @@ where
         };
 
         self.append_op(Operation::Insert(k, value))
+    }
+
+    pub fn mutate(&mut self, k: Key, op: Op) -> &mut Self {
+        self.append_op(Operation::Mutate(k, op))
     }
 
     pub fn remove(&mut self, k: Key) -> &mut Self {

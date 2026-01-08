@@ -2,18 +2,18 @@
 // But, currently, it does not..
 #![deny(unreachable_pub)]
 
-use crate::get_mut::Mutable;
 use crate::handles::ReadHandle;
 use crate::handles::WriteHandle;
 use crate::inner::Inner;
 use crate::inner::Operation;
+use crate::mutable::Mutable;
 use crate::stable_hash_eq::StableHashEq;
 
 use std::hash::Hash;
 
-mod get_mut;
 mod inner;
 mod multi;
+mod mutable;
 mod read_ref;
 mod single;
 mod stable_hash_eq;
@@ -30,6 +30,10 @@ pub mod refs {
     // Expose `ReadGuard` since it has useful methods the user will likely care about.
     #[doc(inline)]
     pub use left_right::ReadGuard;
+}
+
+pub mod muts {
+    pub use crate::mutable::Mutable;
 }
 
 // NOTE: It is _critical_ that this module is not public.

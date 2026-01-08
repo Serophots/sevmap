@@ -6,7 +6,7 @@ use left_right::{
     aliasing::{Aliased, DropBehavior},
 };
 
-use crate::get_mut::Mutable;
+use crate::mutable::Mutable;
 
 pub(crate) struct Inner<Key, MutV, RefV, Meta, D = crate::aliasing::NoDrop>
 where
@@ -88,7 +88,7 @@ where
     /// Mark the map as ready to be consumed for readers.
     MarkReady,
 
-    Mut(Key, Op),
+    Mutate(Key, Op),
 }
 
 impl<Key, MutV, RefV, Meta, Op> Absorb<Operation<Key, MutV, RefV, Op>>
@@ -121,7 +121,7 @@ where
             Operation::MarkReady => {
                 self.ready = true;
             }
-            Operation::Mut(ref key, ref mut operation) => {
+            Operation::Mutate(ref key, ref mut operation) => {
                 if let Some(value) = self.data.get_mut(key) {
                     let mut_v = &mut value.mut_v;
 
@@ -171,7 +171,7 @@ where
             Operation::MarkReady => {
                 inner.ready = true;
             }
-            Operation::Mut(key, mut operation) => {
+            Operation::Mutate(key, mut operation) => {
                 if let Some(value) = self.data.get_mut(&key) {
                     let mut_v = &mut value.mut_v;
 
