@@ -3,7 +3,7 @@ use left_right::aliasing::Aliased;
 use crate::{
     inner::{Inner, Operation, Value},
     mutable::Mutable,
-    single::read::ReadHandle,
+    read::ReadHandle,
 };
 use std::{hash::Hash, ops::Deref};
 

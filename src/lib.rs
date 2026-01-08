@@ -2,25 +2,25 @@
 // But, currently, it does not..
 #![deny(unreachable_pub)]
 
-use crate::handles::ReadHandle;
-use crate::handles::WriteHandle;
 use crate::inner::Inner;
 use crate::inner::Operation;
 use crate::mutable::Mutable;
+use crate::read::ReadHandle;
 use crate::stable_hash_eq::StableHashEq;
+use crate::write::WriteHandle;
 
 use std::hash::Hash;
 
 mod inner;
-mod multi;
 mod mutable;
+mod read;
 mod read_ref;
-mod single;
 mod stable_hash_eq;
+mod write;
 
 pub mod handles {
-    pub use crate::single::read::ReadHandle;
-    pub use crate::single::write::WriteHandle;
+    pub use crate::read::ReadHandle;
+    pub use crate::write::WriteHandle;
 }
 
 pub mod refs {
