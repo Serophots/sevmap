@@ -1,8 +1,8 @@
 use left_right::aliasing::Aliased;
 
 use crate::{
-    mutable::Mutable,
     inner::{Inner, Operation, Value},
+    mutable::Mutable,
     single::read::ReadHandle,
 };
 use std::{hash::Hash, ops::Deref};
@@ -14,7 +14,8 @@ where
     MutV: Mutable<Op> + Clone,
     Meta: Clone,
 {
-    write: left_right::WriteHandle<Inner<Key, MutV, RefV, Meta>, Operation<Key, MutV, RefV, Op>>,
+    write:
+        left_right::WriteHandle<Inner<Key, MutV, RefV, Meta>, Operation<Key, MutV, RefV, Meta, Op>>,
     read: ReadHandle<Key, MutV, RefV, Meta>,
 }
 
@@ -27,7 +28,7 @@ where
     pub(crate) fn new(
         write: left_right::WriteHandle<
             Inner<Key, MutV, RefV, Meta>,
-            Operation<Key, MutV, RefV, Op>,
+            Operation<Key, MutV, RefV, Meta, Op>,
         >,
     ) -> Self {
         let read = ReadHandle::new(left_right::ReadHandle::clone(&*write));
@@ -43,9 +44,13 @@ where
         self.write.has_pending_operations()
     }
 
-    fn append_op(&mut self, op: Operation<Key, MutV, RefV, Op>) -> &mut Self {
+    fn append_op(&mut self, op: Operation<Key, MutV, RefV, Meta, Op>) -> &mut Self {
         self.write.append(op);
         self
+    }
+
+    pub fn set_meta(&mut self, meta: Meta) {
+        self.append_op(Operation::SetMeta(meta));
     }
 
     pub fn insert(&mut self, k: Key, ref_v: RefV, mut_v: MutV) -> &mut Self {

@@ -48,6 +48,10 @@ where
         Some(MapReadRef { guard })
     }
 
+    pub fn meta(&self) -> Option<ReadGuard<'_, Meta>> {
+        Some(ReadGuard::map(self.handle.enter()?, |inner| &inner.meta))
+    }
+
     pub fn len(&self) -> usize {
         self.enter().map_or(0, |x| x.len())
     }

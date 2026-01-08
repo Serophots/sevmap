@@ -77,7 +77,7 @@ where
     }
 }
 
-pub(crate) enum Operation<Key, MutV, RefV, Op>
+pub(crate) enum Operation<Key, MutV, RefV, Meta, Op>
 where
     MutV: Clone,
 {
@@ -85,20 +85,22 @@ where
     Remove(Key),
     Clear,
 
+    SetMeta(Meta),
+
     /// Mark the map as ready to be consumed for readers.
     MarkReady,
 
     Mutate(Key, Op),
 }
 
-impl<Key, MutV, RefV, Meta, Op> Absorb<Operation<Key, MutV, RefV, Op>>
+impl<Key, MutV, RefV, Meta, Op> Absorb<Operation<Key, MutV, RefV, Meta, Op>>
     for Inner<Key, MutV, RefV, Meta>
 where
     Key: Eq + Hash + Clone,
     MutV: Mutable<Op> + Clone,
     Meta: Clone,
 {
-    fn absorb_first(&mut self, op: &mut Operation<Key, MutV, RefV, Op>, _other: &Self) {
+    fn absorb_first(&mut self, op: &mut Operation<Key, MutV, RefV, Meta, Op>, _other: &Self) {
         // Safety note for calls to .alias():
         //
         //   it is safe to alias this value here because if it is ever removed, one alias is always
@@ -118,6 +120,9 @@ where
             Operation::Clear => {
                 self.data.clear();
             }
+            Operation::SetMeta(ref meta) => {
+                self.meta = meta.clone();
+            }
             Operation::MarkReady => {
                 self.ready = true;
             }
@@ -131,7 +136,7 @@ where
         }
     }
 
-    fn absorb_second(&mut self, op: Operation<Key, MutV, RefV, Op>, _other: &Self) {
+    fn absorb_second(&mut self, op: Operation<Key, MutV, RefV, Meta, Op>, _other: &Self) {
         // # Safety (for cast):
         //
         // See the module-level documentation for left_right::aliasing.
@@ -162,6 +167,9 @@ where
             }
             Operation::Clear => {
                 inner.data.clear();
+            }
+            Operation::SetMeta(meta) => {
+                inner.meta = meta;
             }
             Operation::MarkReady => {
                 inner.ready = true;
