@@ -91,10 +91,10 @@ impl<Meta> Options<Meta> {
     ///
     /// # Safety
     ///
-    /// This method is safe to call as long as the implementation of `Hash` and `Eq` for both `K`
-    /// and `V` are deterministic. That is, they must always yield the same result if given the
-    /// same inputs. For keys of type `K`, the result must also be consistent between different
-    /// clones of the same key.
+    /// This method is safe to call as long as the implementation of `Hash` and `Eq` for `K` is
+    /// deterministic. That is, they must always yield the same result if given the same inputs.
+    /// For keys of type `K`, the result must also be consistent between different clones of the
+    /// same key.
     pub unsafe fn assert_stable<Key, MutV, RefV, Op>(
         self,
     ) -> (
@@ -131,5 +131,3 @@ where
 {
     Options::default().construct()
 }
-
-// pub fn new_multi<>
