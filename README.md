@@ -6,3 +6,6 @@ Derives from [evmap](https://github.com/jonhoo/evmap), built upon [left-right](h
 - Values in the map are split into a mutable part and an immutable part:
   - The immutable part is allocated only once, as in `evmap`. Once inserted it cannot be mutated in place. Of course you can always insert and remove values in the map.
   - The mutable part is allocated twice, once in the left side and again in the right side. It can be mutated in place in the map: callers can define their own deterministic operations which can be appended to the underlying `left-right` oplog.
+
+## Usage
+See the /tests for now
