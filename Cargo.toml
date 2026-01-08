@@ -1,0 +1,7 @@
+[package]
+name = "sevmap"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+left-right = "0.11.7"
