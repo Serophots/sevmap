@@ -57,7 +57,7 @@ where
     }
 
     pub fn is_empty(&self) -> bool {
-        self.enter().map_or(false, |x| x.is_empty())
+        self.enter().map_or(true, |x| x.is_empty())
     }
 
     fn get_raw<Q: ?Sized>(

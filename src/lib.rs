@@ -26,6 +26,9 @@ pub mod handles {
 pub mod refs {
     pub use crate::inner::Value;
     pub use crate::read_ref::MapReadRef;
+    pub use crate::read_ref::ReadGuardIter;
+    pub use crate::read_ref::ReadGuardKeys;
+    pub use crate::read_ref::ReadGuardValues;
 
     // Expose `ReadGuard` since it has useful methods the user will likely care about.
     #[doc(inline)]
