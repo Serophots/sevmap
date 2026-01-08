@@ -13,7 +13,7 @@ use left_right::aliasing::DropBehavior;
 //   Aliased<T, NoDrop>: Trait
 //
 // However, it remains private because this module is private.
-pub(crate) struct NoDrop;
+pub struct NoDrop;
 
 pub(crate) struct DoDrop;
 

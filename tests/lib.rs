@@ -1,3 +1,3 @@
-extern crate svmap;
+extern crate sevmap;
 
 mod single;

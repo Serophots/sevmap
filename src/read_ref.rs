@@ -2,20 +2,22 @@ use std::{borrow::Borrow, hash::Hash};
 
 use left_right::ReadGuard;
 
-use crate::inner::Inner;
+use crate::inner::{Inner, Value};
 
-pub struct MapReadRef<'rh, K, V, M>
+pub struct MapReadRef<'rh, Key, MutV, RefV, Meta>
 where
-    K: Hash + Eq,
-    M: Clone,
+    Key: Hash + Eq,
+    MutV: Clone,
+    Meta: Clone,
 {
-    pub(crate) guard: ReadGuard<'rh, Inner<K, V, M>>,
+    pub(crate) guard: ReadGuard<'rh, Inner<Key, MutV, RefV, Meta>>,
 }
 
-impl<'rh, K, V, M> MapReadRef<'rh, K, V, M>
+impl<'rh, Key, MutV, RefV, Meta> MapReadRef<'rh, Key, MutV, RefV, Meta>
 where
-    K: Hash + Eq,
-    M: Clone,
+    Key: Hash + Eq,
+    MutV: Clone,
+    Meta: Clone,
 {
     // pub fn iter(&self) -> ReadGuardIter
 
@@ -27,21 +29,24 @@ where
         self.guard.data.is_empty()
     }
 
-    pub fn meta(&self) -> &M {
+    pub fn meta(&self) -> &Meta {
         &self.guard.meta
     }
 
-    pub fn get<Q: ?Sized>(&'rh self, key: &'_ Q) -> Option<&'rh V>
+    pub fn get<Q: ?Sized>(
+        &'rh self,
+        key: &'_ Q,
+    ) -> Option<&'rh Value<MutV, RefV, crate::aliasing::NoDrop>>
     where
-        K: Borrow<Q>,
+        Key: Borrow<Q>,
         Q: Hash + Eq,
     {
-        self.guard.data.get(key).map(AsRef::as_ref)
+        self.guard.data.get(key)
     }
 
     pub fn contains_key<Q: ?Sized>(&self, key: &Q) -> bool
     where
-        K: Borrow<Q>,
+        Key: Borrow<Q>,
         Q: Hash + Eq,
     {
         self.guard.data.contains_key(key)

@@ -1,27 +1,35 @@
 use left_right::aliasing::Aliased;
 
 use crate::{
-    inner::{Inner, Operation},
+    get_mut::Mutable,
+    inner::{Inner, Operation, Value},
     single::read::ReadHandle,
 };
 use std::{hash::Hash, ops::Deref};
 
 /// A write handle to a single-valued map
-pub struct WriteHandle<K, V, M>
+pub struct WriteHandle<Key, MutV, RefV, Meta, Op>
 where
-    K: Eq + Hash + Clone,
-    M: Clone,
+    Key: Eq + Hash + Clone,
+    MutV: Mutable<Op> + Clone,
+    Meta: Clone,
 {
-    write: left_right::WriteHandle<Inner<K, V, M>, Operation<K, V>>,
-    read: ReadHandle<K, V, M>,
+    write: left_right::WriteHandle<Inner<Key, MutV, RefV, Meta>, Operation<Key, MutV, RefV, Op>>,
+    read: ReadHandle<Key, MutV, RefV, Meta>,
 }
 
-impl<K, V, M> WriteHandle<K, V, M>
+impl<Key, MutV, RefV, Meta, Op> WriteHandle<Key, MutV, RefV, Meta, Op>
 where
-    K: Eq + Hash + Clone,
-    M: Clone,
+    Key: Eq + Hash + Clone,
+    MutV: Mutable<Op> + Clone,
+    Meta: Clone,
 {
-    pub(crate) fn new(write: left_right::WriteHandle<Inner<K, V, M>, Operation<K, V>>) -> Self {
+    pub(crate) fn new(
+        write: left_right::WriteHandle<
+            Inner<Key, MutV, RefV, Meta>,
+            Operation<Key, MutV, RefV, Op>,
+        >,
+    ) -> Self {
         let read = ReadHandle::new(left_right::ReadHandle::clone(&*write));
 
         Self { read, write }
@@ -35,16 +43,21 @@ where
         self.write.has_pending_operations()
     }
 
-    fn append_op(&mut self, op: Operation<K, V>) -> &mut Self {
+    fn append_op(&mut self, op: Operation<Key, MutV, RefV, Op>) -> &mut Self {
         self.write.append(op);
         self
     }
 
-    pub fn insert(&mut self, k: K, v: V) -> &mut Self {
-        self.append_op(Operation::Insert(k, Aliased::from(v)))
+    pub fn insert(&mut self, k: Key, ref_v: RefV, mut_v: MutV) -> &mut Self {
+        let value = Value {
+            mut_v,
+            ref_v: Aliased::from(ref_v),
+        };
+
+        self.append_op(Operation::Insert(k, value))
     }
 
-    pub fn remove(&mut self, k: K) -> &mut Self {
+    pub fn remove(&mut self, k: Key) -> &mut Self {
         self.append_op(Operation::Remove(k))
     }
 
@@ -53,25 +66,28 @@ where
     }
 }
 
-impl<K, V, M> Extend<(K, V)> for WriteHandle<K, V, M>
+impl<Key, MutV, RefV, Meta, Op> Extend<(Key, (RefV, MutV))>
+    for WriteHandle<Key, MutV, RefV, Meta, Op>
 where
-    K: Eq + Hash + Clone,
-    M: Clone,
+    Key: Eq + Hash + Clone,
+    MutV: Mutable<Op> + Clone,
+    Meta: Clone,
 {
-    fn extend<T: IntoIterator<Item = (K, V)>>(&mut self, iter: T) {
+    fn extend<T: IntoIterator<Item = (Key, (RefV, MutV))>>(&mut self, iter: T) {
         for (k, v) in iter {
-            self.insert(k, v);
+            self.insert(k, v.0, v.1);
         }
     }
 }
 
 // Allow using the write handle as a read handle
-impl<K, V, M> Deref for WriteHandle<K, V, M>
+impl<Key, MutV, RefV, Meta, Op> Deref for WriteHandle<Key, MutV, RefV, Meta, Op>
 where
-    K: Eq + Hash + Clone,
-    M: Clone,
+    Key: Eq + Hash + Clone,
+    MutV: Mutable<Op> + Clone,
+    Meta: Clone,
 {
-    type Target = ReadHandle<K, V, M>;
+    type Target = ReadHandle<Key, MutV, RefV, Meta>;
 
     fn deref(&self) -> &Self::Target {
         &self.read

@@ -2,15 +2,16 @@
 // But, currently, it does not..
 #![deny(unreachable_pub)]
 
-use handles::single::ReadHandle as SingleReadHandle;
-use handles::single::WriteHandle as SingleWriteHandle;
-
+use crate::get_mut::Mutable;
+use crate::handles::ReadHandle;
+use crate::handles::WriteHandle;
 use crate::inner::Inner;
 use crate::inner::Operation;
 use crate::stable_hash_eq::StableHashEq;
 
 use std::hash::Hash;
 
+mod get_mut;
 mod inner;
 mod multi;
 mod read_ref;
@@ -18,20 +19,25 @@ mod single;
 mod stable_hash_eq;
 
 pub mod handles {
-    pub mod single {
-        pub use crate::single::read::ReadHandle;
-        pub use crate::single::write::WriteHandle;
-    }
+    pub use crate::single::read::ReadHandle;
+    pub use crate::single::write::WriteHandle;
+}
 
-    pub mod multi {}
+pub mod refs {
+    pub use crate::inner::Value;
+    pub use crate::read_ref::MapReadRef;
+
+    // Expose `ReadGuard` since it has useful methods the user will likely care about.
+    #[doc(inline)]
+    pub use left_right::ReadGuard;
 }
 
 // NOTE: It is _critical_ that this module is not public.
 mod aliasing;
 
 #[derive(Debug)]
-pub struct Options<M> {
-    meta: M,
+pub struct Options<Meta> {
+    meta: Meta,
     capacity: Option<usize>,
 }
 
@@ -44,7 +50,7 @@ impl Default for Options<()> {
     }
 }
 
-impl<M> Options<M> {
+impl<Meta> Options<Meta> {
     pub fn with_meta<M2>(self, meta: M2) -> Options<M2> {
         Options {
             meta,
@@ -52,20 +58,26 @@ impl<M> Options<M> {
         }
     }
 
-    pub fn with_capacity(self, capacity: usize) -> Options<M> {
+    pub fn with_capacity(self, capacity: usize) -> Options<Meta> {
         Options {
             meta: self.meta,
             capacity: Some(capacity),
         }
     }
 
-    pub fn construct_single<K, V>(self) -> (SingleWriteHandle<K, V, M>, SingleReadHandle<K, V, M>)
+    pub fn construct<Key, MutV, RefV, Op>(
+        self,
+    ) -> (
+        WriteHandle<Key, MutV, RefV, Meta, Op>,
+        ReadHandle<Key, MutV, RefV, Meta>,
+    )
     where
-        K: StableHashEq + Clone,
-        M: Clone + 'static,
+        Key: StableHashEq + Clone,
+        MutV: Mutable<Op> + Clone,
+        Meta: Clone + 'static,
     {
         // Safety: K: StableHashEq
-        unsafe { self.assert_stable_single() }
+        unsafe { self.assert_stable() }
     }
 
     /// Create the map, and construct the read and write handles used to access it.
@@ -76,30 +88,41 @@ impl<M> Options<M> {
     /// and `V` are deterministic. That is, they must always yield the same result if given the
     /// same inputs. For keys of type `K`, the result must also be consistent between different
     /// clones of the same key.
-    pub unsafe fn assert_stable_single<K, V>(
+    pub unsafe fn assert_stable<Key, MutV, RefV, Op>(
         self,
-    ) -> (SingleWriteHandle<K, V, M>, SingleReadHandle<K, V, M>)
+    ) -> (
+        WriteHandle<Key, MutV, RefV, Meta, Op>,
+        ReadHandle<Key, MutV, RefV, Meta>,
+    )
     where
-        K: Eq + Hash + Clone,
-        M: Clone + 'static,
+        Key: Eq + Hash + Clone,
+        MutV: Mutable<Op> + Clone,
+        Meta: Clone + 'static,
     {
         let inner = match self.capacity {
             Some(cap) => Inner::with_capacity(self.meta, cap),
             None => Inner::new(self.meta),
         };
 
+        // Safety:
+        // We must call new_from_inner so that the HashMap is cloned from left to right on initiation
+        // (Two calls to HashMap::new will have subtly different hashing behaviour)
         let (mut w, r) = left_right::new_from_empty(inner);
         w.append(Operation::MarkReady);
 
-        (SingleWriteHandle::new(w), SingleReadHandle::new(r))
+        (WriteHandle::new(w), ReadHandle::new(r))
     }
 }
 
-pub fn new_single<K, V>() -> (SingleWriteHandle<K, V, ()>, SingleReadHandle<K, V, ()>)
+pub fn new<Key, MutV, RefV, Op>() -> (
+    WriteHandle<Key, MutV, RefV, (), Op>,
+    ReadHandle<Key, MutV, RefV, ()>,
+)
 where
-    K: StableHashEq + Clone,
+    Key: StableHashEq + Clone,
+    MutV: Mutable<Op> + Clone,
 {
-    Options::default().construct_single()
+    Options::default().construct()
 }
 
 // pub fn new_multi<>
