@@ -125,12 +125,7 @@ where
                 if let Some(value) = self.data.get_mut(key) {
                     let mut_v = &mut value.mut_v;
 
-                    // SAFETY:
-                    // The implementor of GetMut::mutate must ensure
-                    // the function is safe
-                    unsafe {
-                        Mutable::mutate(mut_v, operation);
-                    }
+                    Mutable::mutate(mut_v, operation);
                 }
             }
         }
@@ -175,12 +170,7 @@ where
                 if let Some(value) = self.data.get_mut(&key) {
                     let mut_v = &mut value.mut_v;
 
-                    // SAFETY:
-                    // The implementor of GetMut::mutate must ensure
-                    // the function is safe
-                    unsafe {
-                        Mutable::mutate(mut_v, &mut operation);
-                    }
+                    Mutable::mutate(mut_v, &mut operation);
                 }
             }
         }

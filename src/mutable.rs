@@ -6,15 +6,12 @@ pub trait Mutable<O>: Clone {
     /// otherwise state may become out of sync in the left and
     /// right maps. Take particular care with Hash, Eq traits
     /// which may not be deterministic.
-    // TODO: How can we use rust to make the implementor aware that their
-    // implementation of this function will be unsafe? - because it needs to
-    // be deterministic.
-    unsafe fn mutate(&mut self, operation: &mut O);
+    fn mutate(&mut self, operation: &mut O);
 }
 
 impl<T> Mutable<()> for T
 where
     T: Clone,
 {
-    unsafe fn mutate(&mut self, _: &mut ()) {}
+    fn mutate(&mut self, _: &mut ()) {}
 }
