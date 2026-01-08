@@ -16,7 +16,7 @@ enum MutateValue {
 }
 
 impl Mutable<MutateValue> for i32 {
-    fn mutate(&mut self, operation: &mut MutateValue) {
+    fn mutate_first(&mut self, operation: &mut MutateValue) {
         match operation {
             MutateValue::Increment(v) => *self += *v,
             MutateValue::Decrement(v) => *self -= *v,

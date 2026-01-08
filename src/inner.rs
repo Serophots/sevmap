@@ -130,7 +130,7 @@ where
                 if let Some(value) = self.data.get_mut(key) {
                     let mut_v = &mut value.mut_v;
 
-                    Mutable::mutate(mut_v, operation);
+                    Mutable::mutate_first(mut_v, operation);
                 }
             }
         }
@@ -174,11 +174,11 @@ where
             Operation::MarkReady => {
                 inner.ready = true;
             }
-            Operation::Mutate(key, mut operation) => {
+            Operation::Mutate(key, operation) => {
                 if let Some(value) = self.data.get_mut(&key) {
                     let mut_v = &mut value.mut_v;
 
-                    Mutable::mutate(mut_v, &mut operation);
+                    Mutable::mutate_second(mut_v, operation);
                 }
             }
         }
