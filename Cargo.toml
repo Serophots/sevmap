@@ -1,7 +1,15 @@
 [package]
 name = "sevmap"
 version = "0.1.0"
+authors = ["Serophots <tomtidbury07@gmail.com>"]
 edition = "2024"
+license = "MIT OR Apache-2.0"
+
+description = "A lock-free, eventually consistent, concurrent single-value map."
+repository = "https://github.com/Serophots/sevmap"
+
+keywords = ["map","single-value","lock-free"]
+categories = ["concurrency", "data-structures"]
 
 [dependencies]
 left-right = "0.11.7"
