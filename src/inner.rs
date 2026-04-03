@@ -35,11 +35,15 @@ where
     MutV: Clone,
 {
     /// Read the mutable state of this value
-    /// (An operation is required to mutate this state)
+    ///
+    /// Note that this doesn't return a mut ref;
+    /// In order to mutate this state you must
+    /// queue an operation into the oplog
     pub fn mut_v(&self) -> &MutV {
         &self.mut_v
     }
 
+    /// Read the immutable state of this value
     pub fn ref_v(&self) -> &RefV {
         self.ref_v.as_ref()
     }
