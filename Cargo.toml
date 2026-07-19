@@ -1,6 +1,6 @@
 [package]
 name = "sevmap"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Serophots <tomtidbury07@gmail.com>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
