@@ -12,4 +12,4 @@ keywords = ["map","single-value","lock-free"]
 categories = ["concurrency", "data-structures"]
 
 [dependencies]
-left-right = "0.11.7"
+left-right = "0.11.8"
